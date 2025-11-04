@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.log
+
+# Build artifacts
+dist/
+build/
+
+# Editor/OS specific files
+.DS_Store
+Thumbs.db
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Test coverage
+coverage/
+
+# Uploads
+uploads/
