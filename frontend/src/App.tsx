@@ -1,10 +1,11 @@
 
 import './App.css';
 import { TaskColumn } from './components/TaskColumn';
+import { INITIAL_TASKS } from './constants/tasks';
 import type { Task } from './types/Task';
 
 function App() {
-  const todoTasks: Task[] = [];
+  const todoTasks: Task[] = INITIAL_TASKS;
   const inProgressTasks: Task[] = [];
   const doneTasks: Task[] = [];
 

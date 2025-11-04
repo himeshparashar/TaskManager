@@ -4,8 +4,8 @@ export interface Task {
   description: string;
   status: 'todo' | 'inprogress' | 'done';
   order: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type TaskStatus = 'todo' | 'inprogress' | 'done';
