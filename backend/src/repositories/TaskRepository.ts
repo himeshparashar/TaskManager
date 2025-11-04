@@ -1,6 +1,7 @@
 import type { Task } from '../types/Task';
 import type { ITaskRepository } from '../types/interfaces';
 import { INITIAL_TASKS } from '../constants/tasks';
+import { prisma } from '../database/database';
 
 export class InMemoryTaskRepository implements ITaskRepository {
   private tasks: Task[] = [...INITIAL_TASKS];
@@ -60,5 +61,64 @@ export class InMemoryTaskRepository implements ITaskRepository {
 
     this.tasks.splice(taskIndex, 1);
     return true;
+  }
+}
+
+export class PrismaTaskRepository implements ITaskRepository {
+  async findAll(): Promise<Task[]> {
+    const tasks = await prisma.task.findMany({
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' }
+      ]
+    });
+    return tasks as Task[];
+  }
+
+  async findById(id: string): Promise<Task | null> {
+    const task = await prisma.task.findUnique({
+      where: { id }
+    });
+    return task as Task | null;
+  }
+
+  async create(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> {
+    const task = await prisma.task.create({
+      data: {
+        title: taskData.title,
+        description: taskData.description,
+        status: taskData.status,
+        order: taskData.order
+      }
+    });
+    return task as Task;
+  }
+
+  async update(id: string, updates: Partial<Task>): Promise<Task | null> {
+    try {
+      const task = await prisma.task.update({
+        where: { id },
+        data: {
+          ...(updates.title && { title: updates.title }),
+          ...(updates.description && { description: updates.description }),
+          ...(updates.status && { status: updates.status }),
+          ...(updates.order !== undefined && { order: updates.order })
+        }
+      });
+      return task as Task;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      await prisma.task.delete({
+        where: { id }
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }

@@ -1,11 +1,11 @@
 import express from 'express';
 import { TaskController } from '../controllers/TaskController';
 import { TaskService } from '../services/TaskService';
-import { InMemoryTaskRepository } from '../repositories/TaskRepository';
+import { PrismaTaskRepository } from '../repositories/TaskRepository';
 
 const router = express.Router();
 
-const taskRepository = new InMemoryTaskRepository();
+const taskRepository = new PrismaTaskRepository();
 const taskService = new TaskService(taskRepository);
 const taskController = new TaskController(taskService);
 
