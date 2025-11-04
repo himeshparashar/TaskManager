@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { Task } from '../types/Task';
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'https://task-manager-pied-seven.vercel.app/api';
 
 export const taskApi = {
   getAllTasks: async (): Promise<Task[]> => {
