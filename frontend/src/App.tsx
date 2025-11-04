@@ -2,6 +2,8 @@
 import './App.css';
 import { useState, useEffect } from 'react';
 import { TaskColumn } from './components/TaskColumn';
+import { TaskEditModal } from './components/TaskEditModal';
+import { TaskAddModal } from './components/TaskAddModal';
 import type { Task, TaskStatus } from './types/Task';
 import {
   DndContext,
@@ -18,6 +20,9 @@ function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
     fetchTasks();
@@ -107,6 +112,59 @@ function App() {
     }
   };
 
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveTask = async (taskId: string, updates: { title: string; description: string; status: TaskStatus }) => {
+    const previousTasks = [...tasks];
+    setTasks((tasks) =>
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, ...updates } : task
+      )
+    );
+
+    try {
+      await taskApi.updateTask(taskId, updates);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      setTasks(previousTasks);
+      alert('Failed to update task. Please try again.');
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    const previousTasks = [...tasks];
+    setTasks((tasks) => tasks.filter((task) => task.id !== taskId));
+
+    try {
+      await taskApi.deleteTask(taskId);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      setTasks(previousTasks);
+      alert('Failed to delete task. Please try again.');
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingTask(null);
+  };
+
+  const handleAddTask = async (newTask: { title: string; description: string; status: TaskStatus }) => {
+    try {
+      const createdTask = await taskApi.createTask({
+        ...newTask,
+        order: tasks.length,
+      });
+      setTasks((tasks) => [...tasks, createdTask]);
+    } catch (error) {
+      console.error('Error creating task:', error);
+      alert('Failed to create task. Please try again.');
+    }
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -115,20 +173,39 @@ function App() {
       onDragEnd={handleDragEnd}
     >
       <div className="min-h-screen bg-gray-100 p-5 w-screen">
-        <h1 className="text-center text-gray-800 text-3xl font-bold mb-8">Task Manager</h1>
+        <div className="flex justify-between items-center max-w-[1400px] mx-auto mb-8">
+          <h1 className="text-gray-800 text-3xl font-bold">Task Manager</h1>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="px-6 py-3 bg-green-600 text-black font-semibold rounded-lg hover:bg-green-700 transition-colors shadow-md hover:shadow-lg"
+          >
+            + Add New Task
+          </button>
+        </div>
         {loading ? (
           <div className="text-center text-gray-600 text-xl">Loading tasks...</div>
         ) : (
           <div className="flex gap-5 max-w-[1400px] mx-auto justify-center">
-            <TaskColumn title="To Do" tasks={todoTasks} status="todo" />
-            <TaskColumn title="In Progress" tasks={inProgressTasks} status="inprogress" />
-            <TaskColumn title="Done" tasks={doneTasks} status="done" />
+            <TaskColumn title="To Do" tasks={todoTasks} status="todo" onEdit={handleEditTask} onDelete={handleDeleteTask} />
+            <TaskColumn title="In Progress" tasks={inProgressTasks} status="inprogress" onEdit={handleEditTask} onDelete={handleDeleteTask} />
+            <TaskColumn title="Done" tasks={doneTasks} status="done" onEdit={handleEditTask} onDelete={handleDeleteTask} />
           </div>
         )}
       </div>
       <DragOverlay>
         {activeTask ? <TaskCard task={activeTask} /> : null}
       </DragOverlay>
+      <TaskEditModal
+        task={editingTask}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveTask}
+      />
+      <TaskAddModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSave={handleAddTask}
+      />
     </DndContext>
   );
 }

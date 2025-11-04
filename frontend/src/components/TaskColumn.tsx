@@ -7,9 +7,11 @@ interface TaskColumnProps {
   title: string;
   tasks: Task[];
   status: 'todo' | 'inprogress' | 'done';
+  onEdit?: (task: Task) => void;
+  onDelete?: (taskId: string) => void;
 }
 
-export const TaskColumn = ({ title, tasks, status }: TaskColumnProps) => {
+export const TaskColumn = ({ title, tasks, status, onEdit, onDelete }: TaskColumnProps) => {
   const { setNodeRef } = useDroppable({
     id: status,
   });
@@ -26,7 +28,7 @@ export const TaskColumn = ({ title, tasks, status }: TaskColumnProps) => {
       >
         <div ref={setNodeRef} className="flex flex-col gap-3 min-h-[400px]">
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} />
           ))}
         </div>
       </SortableContext>
